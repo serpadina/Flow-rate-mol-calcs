@@ -1,0 +1,78 @@
+# This is to calculate depending on the desired volume of the reagent solution based on available syringes
+volumes_initial = [0.36, 0.24, 0.41, 0.119] # Initial compound volumes based on reaction type and stichiometry
+volumes_increased =[]
+
+for i in volumes_initial:
+    volume_increase = i*17
+    volumes_increased.append(volume_increase)
+print("Reagents [DMF or MeOH, H2O, Cyclohexanone, P-nitrobenzaldehyde]")
+print(f"with respective volumes (and mass for aldehyde) of {volumes_increased}")
+print(f"The total reagent solution volume is {(volumes_increased[0]+volumes_increased[1] + volumes_increased[2]+volumes_increased[3]):.3} ml, "
+      f"which can be divided into separate syringes.\n"
+      f"For 4 syringes, each will contain {((volumes_increased[0]+volumes_increased[1] + volumes_increased[2]+volumes_increased[3])/4):.3} ml." )
+print("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
+hour = int(input("How much time do you want the experiment to last? Please type an integer in hours: "))
+print("-----------------------------------------------------Data for different flow rates to choose best by user-----------------------------------------------------------------")
+# End of defining reagent' volumes. These volumes will be used later on
+sample_vol = 0.7 # desired volume of sample aliquots
+
+min = hour * 60
+flow_rates = [1, 2, 3, 4, 5, 6, 7, 10, 15, 20, 25, 30, 100]  # examples of typical flow rates
+list_ul = []
+for i in flow_rates:
+    x = i * min
+    list_ul.append(x)
+list_ml = []
+for y in list_ul:
+    list_ml.append(y * 0.001)
+for i in range(0, len(flow_rates)):
+    flow_rate = flow_rates[i]
+    volume = list_ml[i]
+    print(
+        f"* For a flow rate of {str(flow_rate)} ul/min, {str(volume)} ml of reagent/product solution will be used/produced in {str(hour)} hours. "
+        f"For {sample_vol} ml aliquot collection, you will have {volume / sample_vol:.2} samples.\n "
+        f"Sample collection every {(sample_vol*1000)/ flow_rate:.2f} min or {(((sample_vol*1000)/ flow_rate))/60:.2f} hours.")
+MWs = {"MeOH": 32.04, "DMF": 79.09, "H2O": 18.01528, "Cyclohexanone": 98.15,
+       "P-nitrobenzaldehyde": 151.12}  # Molecular weight in g/mol
+densities = {"MeOH": 792, "DMF": 944, "H2O": 997, "Cyclohexanone": 948}  # Densities in g/L
+
+volumes_ml = {"MeOH": 0.36, "DMF": 0.36, "H2O": 0.24, "Cyclohexanone": 0.41}  # Volumes in mL, change according to the new values after multiplication
+volumes = {"MeOH": 5.76 / 1000, "DMF": 5.76 / 1000, "H2O": 3.84 / 1000, "Cyclohexanone": 6.56 / 1000}  # Volumes in L, change according to the new values after multiplication
+weights = {"MeOH": (volumes["MeOH"] * densities["MeOH"]), "DMF": (volumes["DMF"] * densities["DMF"]),
+           "H2O": (volumes["H2O"] * densities["H2O"]),
+           "Cyclohexanone": (volumes["Cyclohexanone"] * densities["Cyclohexanone"]),
+           "P-nitrobenzaldehyde": 1.904}  # Mass in g
+mol = {"MeOH": (weights["MeOH"] / MWs["MeOH"]), "DMF": (weights["DMF"] / MWs["DMF"]),
+       "H2O": (weights["H2O"] / MWs["H2O"]), "Cyclohexanone": (weights["Cyclohexanone"] / MWs["Cyclohexanone"]),
+       "P-nitrobenzaldehyde": (weights["P-nitrobenzaldehyde"] / MWs["P-nitrobenzaldehyde"])}
+
+print("------------------------------------------------------Molarity in initial total reagent solution--------------------------------------------------------------------------")
+for key, value in mol.items():
+    print(f"{key} : {str(value):.4} mol in reagent solution.")
+ratio_cyclo = mol["Cyclohexanone"] * 10
+ratio_alde = mol["P-nitrobenzaldehyde"] * 10
+print(f"The ketone:aldehyde ratio is {ratio_cyclo:.2} : {ratio_alde:.2} which is {ratio_cyclo/ratio_alde:.2}.")
+print("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
+conc_cyclo = mol["Cyclohexanone"] / (volumes["DMF"] + volumes["H2O"])
+conc_alde = mol["P-nitrobenzaldehyde"] / (volumes["DMF"] + volumes["H2O"] + volumes["Cyclohexanone"])
+desired_flow_rate = int(input(f"Do you have a desired flow rate for the {hour}-hour experiment? Please type an integer in ul/min: "))
+print("-----------------------------------------------------Instructions for experiment------------------------------------------------------------------------------------------")
+volume_exp = desired_flow_rate * 60 * 0.001 * hour
+mol_cyclo_exp = conc_cyclo * volume_exp/1000 # to convert in L
+mol_alde_exp = conc_alde * volume_exp/1000 # to convert in L
+for i in range(0, len(flow_rates)):
+    flow_rate = flow_rates[i]
+    volume = list_ml[i]
+    if flow_rate != desired_flow_rate:
+        pass
+    else:
+        print(
+        f"* For a flow rate of {str(flow_rate)} ul/min, {str(volume)} ml of reagent/product solution will be used/produced in {str(hour)} hours. "
+        f"For {sample_vol} ml aliquot collection, you will have {volume / sample_vol:.2f} samples.\n "
+        f"Please collect the {sample_vol} ml aliquot every {(sample_vol*1000)/ flow_rate:.2f} mins or {(((sample_vol*1000)/ flow_rate))/60:.2} hours!\n"
+        f"For calculations:\n"
+        f"Cyclohexanone has {conc_cyclo:.2} g/L concentration in initial reagent solution and {mol_cyclo_exp:.2} mol in {hour} hours or {volume_exp} ml, \n"
+        f"while p-nitrobenzaldehyde has {conc_alde:.2} g/L concentration in initial reagent solution and {mol_alde_exp:.2} mol in the same number of hours and experiment volume.\n"
+        f"This corresponds to {(mol_cyclo_exp / 1.9):.3} mol of cyclohexanone, and {(mol_alde_exp / 1.9):.3} mol of p-nitrobenzaldehyde on each of the {sample_vol} ml aliquots."
+        )
+print("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
